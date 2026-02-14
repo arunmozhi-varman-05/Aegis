@@ -26,6 +26,10 @@ TRUSTED_DOMAINS = {
     "linkedin.com",
     "facebook.com"
 }
+# Hard-trusted TLDs (Government & Education)
+HARD_TRUST_TLDS = {"gov", "gov.in", "edu", "edu.in", "ac.in"}
+HARD_TRUST_CAP = 0.25  # max 25% risk
+
 
 TRUST_REDUCTION_FACTOR = 0.4  # reduce risk by 60%
 
@@ -60,6 +64,9 @@ while True:
     features = extract_features(url)
     df = pd.DataFrame([features])
     reasons = explain_prediction(features)
+    extracted = tldextract.extract(url)
+    tld = extracted.suffix
+
 
 
     # Base phishing probability
@@ -71,6 +78,11 @@ while True:
 
     if trusted:
         phishing_prob *= TRUST_REDUCTION_FACTOR
+    
+    # 🔐 HARD TRUST TLD ADJUSTMENT (CORRECT PLACE)
+    if tld in HARD_TRUST_TLDS:
+        phishing_prob = min(phishing_prob, HARD_TRUST_CAP)
+        print("🏛️ Government/Education TLD detected (hard trust applied)")
 
     # Output
     print("\n🔎 URL:", url)
@@ -90,6 +102,7 @@ while True:
 
     print("-" * 60)
     print("🧠 Reason(s):")
-for r in reasons:
-    print(f" - {r}")
+    for r in reasons:
+        print(f" - {r}")
+    
 
