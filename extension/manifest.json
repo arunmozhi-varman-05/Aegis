@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Aegis – Phishing Detection",
+  "description": "AI-powered phishing detection using real-time URL analysis",
+  "version": "1.0",
+  "permissions": ["activeTab"],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
