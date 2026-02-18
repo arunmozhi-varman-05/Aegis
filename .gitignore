@@ -1,2 +1,7 @@
-__pycache__
-url_model.pkl
+__pycache__/
+*.pyc
+*.pkl
+dataset/
+venv/
+.env
+trusted_domains.json
