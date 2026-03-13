@@ -1,7 +1,5 @@
-__pycache__/
-*.pyc
-*.pkl
-dataset/
 venv/
+__pycache__/
+*.pkl
+*.joblib
 .env
-trusted_domains.json

@@ -11,7 +11,21 @@ from feature_extraction import extract_features
 # =========================
 # Load FINAL dataset
 # =========================
-df = pd.read_csv("dataset/final_urls.csv")
+df = pd.read_csv("dataset/phishing_dataset_final.csv")
+
+print("Dataset Loaded:", df.shape)
+print(df["label"].value_counts())
+
+# DATA CLEANING
+df = df.dropna()
+df = df[df["url"].str.len() > 5]
+df = df[df["url"].str.contains("\.")]
+df = df.dropna()
+df = df[df["url"].str.startswith(("http", "www"))]
+
+print("Clean dataset:", df.shape)
+
+print("Clean dataset:", df.shape)
 
 print("Dataset Loaded:", df.shape)
 print(df["label"].value_counts())  # Important check
@@ -59,5 +73,6 @@ print(classification_report(y_test, y_pred))
 # =========================
 with open("url_model.pkl", "wb") as f:
     pickle.dump(model, f)
+    
 
 print("✅ Model retrained and saved successfully!")

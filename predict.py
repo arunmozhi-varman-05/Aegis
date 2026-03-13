@@ -54,10 +54,17 @@ def get_root_domain(url):
 # Prediction loop
 # ==============================
 while True:
-    url = input("Enter URL (or type exit): ").strip()
+    try:
+        url = input("Enter URL (or type exit): ").strip()
 
-    if url.lower() == "exit":
-        print("\n👋 Exiting system")
+        if url.lower() == "exit":
+            print("👋 Exiting phishing detection system.")
+            break
+
+        # prediction code here
+
+    except KeyboardInterrupt:
+        print("\n👋 Program stopped.")
         break
 
     # Feature extraction

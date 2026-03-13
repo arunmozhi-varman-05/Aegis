@@ -24,7 +24,10 @@ TRUSTED_DOMAINS = {
     "github.com",
     "kaggle.com",
     "microsoft.com",
-    "steampowered.com"
+    "steampowered.com",
+    "youtube.com",
+    "linkedin.com",
+    "wikipedia.org"
 }
 
 

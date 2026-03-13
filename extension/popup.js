@@ -49,3 +49,19 @@ document.addEventListener("DOMContentLoaded", scanCurrentTab);
 
 // 🔘 Manual re-scan button
 checkBtn.addEventListener("click", scanCurrentTab);
+
+document.getElementById("markSafeBtn").addEventListener("click", () => {
+  fetch("http://127.0.0.1:5000/feedback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      domain: currentDomain,
+      action: "mark_safe"
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert("Domain marked as trusted!");
+  });
+});
+
