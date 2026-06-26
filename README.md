@@ -32,3 +32,15 @@ python train_model.py
 ## Run the Application
 
 python app.py
+
+Project Structure
+
+Aegis/
+│
+├── app.py                # Flask backend
+├── train_model.py        # Model training
+├── predict.py            # URL prediction
+├── feature_extraction.py # Feature extraction
+├── extension/            # Chrome extension
+├── requirements.txt
+└── README.md

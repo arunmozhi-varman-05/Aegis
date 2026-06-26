@@ -19,7 +19,7 @@ print(df["label"].value_counts())
 # DATA CLEANING
 df = df.dropna()
 df = df[df["url"].str.len() > 5]
-df = df[df["url"].str.contains("\.")]
+df = df[df["url"].str.contains(r"\.")]
 df = df.dropna()
 df = df[df["url"].str.startswith(("http", "www"))]
 
