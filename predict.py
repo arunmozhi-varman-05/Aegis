@@ -1,6 +1,9 @@
 import pickle
 import pandas as pd
 import tldextract
+import whois
+import datetime
+import requests
 from feature_extraction import extract_features
 from explain import explain_prediction
 
@@ -32,6 +35,45 @@ HARD_TRUST_CAP = 0.25  # max 25% risk
 
 
 TRUST_REDUCTION_FACTOR = 0.4  # reduce risk by 60%
+
+SAFE_BROWSING_API_KEY = "YOUR_API_KEY_HERE"
+
+def get_domain_age_days(domain):
+    try:
+        w = whois.whois(domain)
+        creation_date = w.creation_date
+        if isinstance(creation_date, list):
+            creation_date = creation_date[0]
+        if creation_date:
+            age = (datetime.datetime.now() - creation_date).days
+            return age
+    except Exception:
+        pass
+    return None
+
+def check_google_safe_browsing(url):
+    if SAFE_BROWSING_API_KEY == "YOUR_API_KEY_HERE":
+        return False
+    
+    api_url = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={SAFE_BROWSING_API_KEY}"
+    payload = {
+        "client": {"clientId": "aegis", "clientVersion": "1.0.0"},
+        "threatInfo": {
+            "threatTypes": ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION"],
+            "platformTypes": ["ANY_PLATFORM"],
+            "threatEntryTypes": ["URL"],
+            "threatEntries": [{"url": url}]
+        }
+    }
+    try:
+        response = requests.post(api_url, json=payload, timeout=3)
+        if response.status_code == 200:
+            data = response.json()
+            if "matches" in data and len(data["matches"]) > 0:
+                return True
+    except Exception:
+        pass
+    return False
 
 # ==============================
 # Load model
@@ -70,11 +112,16 @@ while True:
     # Feature extraction
     features = extract_features(url)
     df = pd.DataFrame([features])
-    reasons = explain_prediction(features)
+    
+    # Real-time checks
+    root_domain = get_root_domain(url)
     extracted = tldextract.extract(url)
     tld = extracted.suffix
-
-
+    
+    domain_age = get_domain_age_days(root_domain)
+    is_safe_browsing_flagged = check_google_safe_browsing(url)
+    
+    reasons = explain_prediction(features, domain_age, is_safe_browsing_flagged)
 
     # Base phishing probability
     phishing_prob = model.predict_proba(df)[0][1]
@@ -86,10 +133,18 @@ while True:
     if trusted:
         phishing_prob *= TRUST_REDUCTION_FACTOR
     
-    # 🔐 HARD TRUST TLD ADJUSTMENT (CORRECT PLACE)
     if tld in HARD_TRUST_TLDS:
         phishing_prob = min(phishing_prob, HARD_TRUST_CAP)
         print("🏛️ Government/Education TLD detected (hard trust applied)")
+        
+    # WHOIS and Safe Browsing adjustments
+    if domain_age is not None and domain_age < 30:
+        phishing_prob = max(phishing_prob, 0.85)
+        print(f"⚠️ Domain is very new! Age: {domain_age} days (risk adjusted)")
+        
+    if is_safe_browsing_flagged:
+        phishing_prob = 0.99
+        print("🚨 FLAG: Google Safe Browsing marked this as a threat!")
 
     # Output
     print("\n🔎 URL:", url)

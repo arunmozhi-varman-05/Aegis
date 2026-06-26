@@ -2,7 +2,7 @@ import pandas as pd
 import pickle
 
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 
 from feature_extraction import extract_features
@@ -52,9 +52,11 @@ X_train, X_test, y_train, y_test = train_test_split(
 # =========================
 # Train model (IMPROVED)
 # =========================
-model = LogisticRegression(
-    max_iter=2000,
-    class_weight="balanced"  # 🔥 KEY FIX
+model = RandomForestClassifier(
+    n_estimators=100,
+    class_weight="balanced",
+    random_state=42,
+    n_jobs=-1
 )
 
 model.fit(X_train, y_train)

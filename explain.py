@@ -1,4 +1,4 @@
-def explain_prediction(features):
+def explain_prediction(features, domain_age=None, is_safe_browsing_flagged=False):
     reasons = []
 
     # Keyword-based reasons
@@ -23,6 +23,13 @@ def explain_prediction(features):
 
     if features.get("url_entropy", 0) > 4.0:
         reasons.append("URL appears random or obfuscated")
+
+    # Real-time checks
+    if domain_age is not None and domain_age < 30:
+        reasons.append(f"Domain is very new (registered {domain_age} days ago)")
+        
+    if is_safe_browsing_flagged:
+        reasons.append("Flagged as a threat by Google Safe Browsing")
 
     # Fallback
     if not reasons:
