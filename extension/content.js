@@ -11,8 +11,8 @@ function showBanner(data) {
         top: "0",
         left: "0",
         width: "100%",
-        backgroundColor: data.label.includes("PHISHING") ? "#dc3545" : "#ffc107",
-        color: data.label.includes("PHISHING") ? "white" : "black",
+        backgroundColor: data.label.toUpperCase().includes("PHISHING") ? "#dc3545" : (data.label.toUpperCase().includes("SUSPICIOUS") ? "#ffc107" : "#28a745"),
+        color: data.label.toUpperCase().includes("SUSPICIOUS") ? "black" : "white",
         textAlign: "center",
         padding: "15px",
         zIndex: "999999",
@@ -25,8 +25,17 @@ function showBanner(data) {
         alignItems: "center"
     });
 
+    let message = "";
+    if (data.label.toUpperCase().includes("PHISHING")) {
+        message = `⚠️ <b>Aegis Alert:</b> This website is flagged as <b>DANGEROUS/PHISHING</b> (Risk Score: ${data.risk_score}%). Proceed with extreme caution!`;
+    } else if (data.label.toUpperCase().includes("SUSPICIOUS")) {
+        message = `⚠️ <b>Aegis Alert:</b> This website is flagged as <b>SUSPICIOUS</b> (Risk Score: ${data.risk_score}%). Be careful.`;
+    } else {
+        message = `✅ <b>Aegis Alert:</b> This website is flagged as <b>LEGITIMATE</b> (Risk Score: ${data.risk_score}%). Safe browsing!`;
+    }
+
     const textDiv = document.createElement("div");
-    textDiv.innerHTML = `🛡️ <b>Aegis Alert:</b> This website is flagged as <b>${data.label}</b> (Risk Score: ${data.risk_score}%). Proceed with extreme caution!`;
+    textDiv.innerHTML = message;
     
     const closeBtn = document.createElement("button");
     closeBtn.innerText = "Dismiss";

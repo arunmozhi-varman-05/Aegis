@@ -13,7 +13,10 @@ import redis
 
 from feature_extraction import extract_features
 from explain import explain_prediction
-
+from backend.predictor import (
+    RandomForestPredictor, HIGH_RISK_THRESHOLD, SUSPICIOUS_THRESHOLD, 
+    TRUSTED_DOMAINS, HARD_TRUST_TLDS, HARD_TRUST_CAP, TRUST_REDUCTION_FACTOR
+)
 app = Flask(__name__)
 CORS(app)
 
@@ -30,7 +33,7 @@ try:
     redis_client.ping()
     print(f"✅ Redis Cache Connected at {redis_host}")
 except Exception:
-    print("⚠️ Redis not available. Running without cache.")
+    # Silently run without cache if Redis isn't running locally
     redis_client = None
 
 # ==========================================
@@ -48,27 +51,6 @@ def init_db():
     conn.close()
 
 MODEL_PATH = "url_model.pkl"
-
-HIGH_RISK_THRESHOLD = 0.75
-SUSPICIOUS_THRESHOLD = 0.45
-
-TRUSTED_DOMAINS = {
-    "google.com",
-    "amazon.com",
-    "amazon.in",
-    "github.com",
-    "kaggle.com",
-    "microsoft.com",
-    "steampowered.com",
-    "youtube.com",
-    "linkedin.com",
-    "wikipedia.org"
-}
-
-
-HARD_TRUST_TLDS = {"gov", "gov.in", "edu", "edu.in", "ac.in"}
-HARD_TRUST_CAP = 0.25
-TRUST_REDUCTION_FACTOR = 0.4
 
 SAFE_BROWSING_API_KEY = "YOUR_API_KEY_HERE"
 
@@ -109,8 +91,7 @@ def check_google_safe_browsing(url):
         pass
     return False
 
-with open(MODEL_PATH, "rb") as f:
-    model = pickle.load(f)
+predictor = RandomForestPredictor(MODEL_PATH)
 
 
 def get_root_domain(url):
@@ -151,8 +132,9 @@ def check_url():
     
     reasons = explain_prediction(features, domain_age, is_safe_browsing_flagged)
 
-    # Base ML score (smoothed)
-    phishing_prob = smooth_risk(model.predict_proba(df)[0][1])
+    # Base ML score (smoothed) via abstraction
+    raw_phish_prob = predictor.predict_risk(features)
+    phishing_prob = smooth_risk(raw_phish_prob)
 
     # Domain & TLD
     root_domain, tld = get_root_domain(url)

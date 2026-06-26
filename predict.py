@@ -6,35 +6,15 @@ import datetime
 import requests
 from feature_extraction import extract_features
 from explain import explain_prediction
-
+from backend.predictor import (
+    RandomForestPredictor, HIGH_RISK_THRESHOLD, SUSPICIOUS_THRESHOLD, 
+    TRUSTED_DOMAINS, HARD_TRUST_TLDS, HARD_TRUST_CAP, TRUST_REDUCTION_FACTOR
+)
 
 # ==============================
 # Configuration
 # ==============================
 MODEL_PATH = "url_model.pkl"
-
-HIGH_RISK_THRESHOLD = 0.60
-SUSPICIOUS_THRESHOLD = 0.30
-
-# Trusted domains (expandable)
-TRUSTED_DOMAINS = {
-    "google.com",
-    "amazon.com",
-    "amazon.in",
-    "github.com",
-    "kaggle.com",
-    "microsoft.com",
-    "apple.com",
-    "youtube.com",
-    "linkedin.com",
-    "facebook.com"
-}
-# Hard-trusted TLDs (Government & Education)
-HARD_TRUST_TLDS = {"gov", "gov.in", "edu", "edu.in", "ac.in"}
-HARD_TRUST_CAP = 0.25  # max 25% risk
-
-
-TRUST_REDUCTION_FACTOR = 0.4  # reduce risk by 60%
 
 SAFE_BROWSING_API_KEY = "YOUR_API_KEY_HERE"
 
@@ -78,8 +58,7 @@ def check_google_safe_browsing(url):
 # ==============================
 # Load model
 # ==============================
-with open(MODEL_PATH, "rb") as f:
-    model = pickle.load(f)
+predictor = RandomForestPredictor(MODEL_PATH)
 
 print("🔐 AI-Based Phishing Detection System")
 print("⚙️ Risk Levels: High / Suspicious / Safe")
@@ -123,8 +102,8 @@ while True:
     
     reasons = explain_prediction(features, domain_age, is_safe_browsing_flagged)
 
-    # Base phishing probability
-    phishing_prob = model.predict_proba(df)[0][1]
+    # Base phishing probability via abstraction
+    phishing_prob = predictor.predict_risk(features)
 
     # Domain trust adjustment
     root_domain = get_root_domain(url)
