@@ -1,12 +1,14 @@
 import pickle
 import pandas as pd
+# pyrefly: ignore [missing-import]
 import tldextract
 from feature_extraction import extract_features
 
+from backend.predictor import RandomForestPredictor
+
 MODEL_PATH = "url_model.pkl"
 
-with open(MODEL_PATH, "rb") as f:
-    model = pickle.load(f)
+predictor = RandomForestPredictor(MODEL_PATH)
 
 urls_to_test = [
     "google.com",
@@ -17,6 +19,5 @@ urls_to_test = [
 
 for url in urls_to_test:
     features = extract_features(url)
-    df = pd.DataFrame([features])
-    phishing_prob = model.predict_proba(df)[0][1]
+    phishing_prob = predictor.predict_risk(features)
     print(f"URL: {url} -> Phishing Prob: {phishing_prob:.4f}")

@@ -12,24 +12,13 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         })
         .then(res => res.json())
         .then(data => {
-            // If the backend flags the site, inject the content script to show a warning
-            // Read strictness level and decide whether to block
+            // Read strictness level (not strictly needed now since we always show a banner, but kept for future use)
             chrome.storage.sync.get(["strictness"], (result) => {
-                const mode = result.strictness || "balanced";
-                let shouldBlock = false;
-                
-                if (mode === "paranoid" && (data.label === "PHISHING" || data.label === "SUSPICIOUS")) {
-                    shouldBlock = true;
-                } else if (mode === "balanced" && data.label === "PHISHING") {
-                    shouldBlock = true;
-                }
-
-                if (shouldBlock) {
-                    chrome.tabs.sendMessage(tabId, {
-                        action: "show_warning",
-                        data: data
-                    });
-                }
+                // Always show the classification banner on any website as requested
+                chrome.tabs.sendMessage(tabId, {
+                    action: "show_warning",
+                    data: data
+                });
             });
         })
         .catch(err => {
