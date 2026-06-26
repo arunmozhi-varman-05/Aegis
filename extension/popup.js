@@ -2,10 +2,19 @@ const body = document.getElementById("popupBody");
 const resultDiv = document.getElementById("result");
 const checkBtn = document.getElementById("checkBtn");
 
+let currentDomain = ""; // Global variable for feedback submission
+
 // 🔁 Common scan function
 function scanCurrentTab() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const url = tabs[0].url;
+    
+    // Extract hostname to use for the "Mark Safe" button later
+    try {
+      currentDomain = new URL(url).hostname;
+    } catch(e) {
+      currentDomain = url;
+    }
 
     fetch("http://127.0.0.1:5000/check_url", {
       method: "POST",

@@ -3,8 +3,12 @@
   "name": "Aegis – Phishing Detection",
   "description": "AI-powered phishing detection using real-time URL analysis",
   "version": "1.0",
-  "permissions": ["activeTab"],
+  "permissions": ["activeTab", "tabs", "scripting"],
+  "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
   }
 }
