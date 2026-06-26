@@ -218,6 +218,25 @@ def feedback():
 
     return jsonify({"status": "ignored"})
 
+@app.route("/whitelist", methods=["GET", "DELETE"])
+def whitelist_api():
+    if request.method == "GET":
+        domains = load_trusted_domains()
+        return jsonify({"domains": list(domains)})
+    elif request.method == "DELETE":
+        data = request.json
+        domain = data.get("domain")
+        if domain:
+            try:
+                conn = sqlite3.connect(DB_PATH)
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM trusted_domains WHERE domain = ?", (domain,))
+                conn.commit()
+                conn.close()
+                return jsonify({"status": "success"})
+            except Exception as e:
+                return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Domain required"}), 400
 
 
 def load_trusted_domains():

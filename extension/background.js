@@ -13,18 +13,24 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         .then(res => res.json())
         .then(data => {
             // If the backend flags the site, inject the content script to show a warning
-            if (data.label === "PHISHING" || data.label === "SUSPICIOUS") {
-                chrome.scripting.executeScript({
-                    target: { tabId: tabId },
-                    files: ["content.js"]
-                }, () => {
-                    // Send the risk data to the injected script
+            // Read strictness level and decide whether to block
+            chrome.storage.sync.get(["strictness"], (result) => {
+                const mode = result.strictness || "balanced";
+                let shouldBlock = false;
+                
+                if (mode === "paranoid" && (data.label === "PHISHING" || data.label === "SUSPICIOUS")) {
+                    shouldBlock = true;
+                } else if (mode === "balanced" && data.label === "PHISHING") {
+                    shouldBlock = true;
+                }
+
+                if (shouldBlock) {
                     chrome.tabs.sendMessage(tabId, {
                         action: "show_warning",
                         data: data
                     });
-                });
-            }
+                }
+            });
         })
         .catch(err => {
             console.error("Aegis background scan failed: ", err);
